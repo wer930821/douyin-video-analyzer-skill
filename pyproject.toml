@@ -1,7 +1,7 @@
 [project]
 name = "douyin-video-analyzer-skill"
-version = "0.3.0"
-description = "Prepare mainland China Douyin video media for direct analysis by an MCP client"
+version = "0.4.0"
+description = "Mainland China Douyin video analyzer with mobile web UI and Remote MCP"
 requires-python = ">=3.11"
 dependencies = [
   "httpx>=0.28",

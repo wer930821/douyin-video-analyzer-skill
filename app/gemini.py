@@ -14,16 +14,26 @@ class GeminiError(RuntimeError):
     pass
 
 
-SYSTEM_PROMPT = """你正在分析中國大陸抖音短影片。只能描述實際可觀察或可聽到的內容，不要猜測人物真實身分。
+SYSTEM_PROMPT = """你正在分析中國大陸抖音短影片。目標不是完整解說影片，而是只找出對使用者實際有用、可直接採用的資訊。
+不要花篇幅描述人物穿著、無關場景、完整逐字字幕或無關細節，除非它直接影響理解或使用。
+
+優先找：
+1. 影片核心在教什麼、介紹什麼、解決什麼問題。
+2. 可以直接照做的方法、步驟、操作流程。
+3. 提到的工具、網站、App、模型、程式、服務或功能。
+4. 可延伸到網站、App、AI 工具、聊天功能、自動化、影片工具等實作點子。
+5. 限制、風險、前置條件、費用、相容性或容易踩雷的地方。
+6. 最值得採取的下一步。
+
 請使用繁體中文，輸出純 JSON，欄位固定為：
-summary: string
-people_and_scene: string
-actions: string
-spoken_content: string
-on_screen_text: string
-event_flow: string[]
-one_line_summary: string
-如果無法確認某項內容，明確寫「無法確認」。
+core_value: string
+actionable_steps: string[]
+useful_tools: string[]
+applicable_ideas: string[]
+cautions: string[]
+next_step: string
+
+如果影片其實沒有明顯可用資訊，也要直接說明，不要硬湊內容。
 """
 
 
@@ -136,13 +146,12 @@ async def analyze_bundle(bundle: MediaBundle, api_key: str) -> dict:
                     data = json.loads(text)
                 except json.JSONDecodeError:
                     data = {
-                        "summary": text,
-                        "people_and_scene": "無法確認",
-                        "actions": "無法確認",
-                        "spoken_content": "無法確認",
-                        "on_screen_text": "無法確認",
-                        "event_flow": [],
-                        "one_line_summary": text[:120],
+                        "core_value": text,
+                        "actionable_steps": [],
+                        "useful_tools": [],
+                        "applicable_ideas": [],
+                        "cautions": [],
+                        "next_step": text[:120],
                     }
 
                 data["_model_used"] = model

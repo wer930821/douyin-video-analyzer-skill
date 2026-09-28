@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     request_timeout_seconds: int = 90
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.8-flash"
+    gemini_fallback_models: str = "gemini-3.5-flash-lite,gemini-3.5-flash"
+    gemini_max_retries: int = 3
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

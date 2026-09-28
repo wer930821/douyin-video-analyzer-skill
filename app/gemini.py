@@ -123,7 +123,7 @@ async def analyze_bundle(bundle: MediaBundle, api_key: str) -> dict:
     }
 
     errors: list[str] = []
-    async with httpx.AsyncClient(timeout=180) as client:
+    async with httpx.AsyncClient(timeout=settings.gemini_request_timeout_seconds) as client:
         for model in _model_chain():
             try:
                 body = await _call_model(client, model, key, payload)

@@ -1,13 +1,11 @@
 [project]
 name = "douyin-video-analyzer-skill"
-version = "0.2.1"
-description = "Analyze mainland China Douyin videos from a share URL"
+version = "0.3.0"
+description = "Prepare mainland China Douyin video media for direct analysis by an MCP client"
 requires-python = ">=3.11"
 dependencies = [
   "httpx>=0.28",
   "pydantic-settings>=2.7",
-  "openai>=1.70",
-  "python-multipart>=0.0.20",
   "mcp>=2.0,<3",
   "uvicorn[standard]>=0.34",
 ]

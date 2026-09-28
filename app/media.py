@@ -74,7 +74,7 @@ def _run_ffmpeg(args: list[str]) -> None:
 async def extract_audio(video: Path, audio: Path) -> None:
     await asyncio.to_thread(
         _run_ffmpeg,
-        ["ffmpeg", "-y", "-i", str(video), "-vn", "-ac", "1", "-ar", "16000", "-b:a", "48k", str(audio)],
+        ["ffmpeg", "-y", "-i", str(video), "-t", str(settings.max_audio_seconds), "-vn", "-ac", "1", "-ar", "16000", "-b:a", "32k", str(audio)],
     )
 
 

@@ -40,46 +40,53 @@ def validate_douyin_url(url: str) -> str:
     return value
 
 
+def _pick_video_url(data: dict) -> str | None:
+    # Evil0ctal v4 shape
+    video_obj = data.get("video") or {}
+    for key in ("play_addr", "play_addr_h264", "download_addr"):
+        urls = ((video_obj.get(key) or {}).get("url_list") or [])
+        if urls:
+            return urls[0].replace("playwm", "play")
+
+    # Compatibility with normalized or older responses
+    media = data.get("media") or {}
+    video = media.get("video") or {}
+    if isinstance(video.get("url"), str):
+        return video["url"]
+
+    for key in ("nwm_video_url_HQ", "nwm_video_url"):
+        if isinstance(data.get(key), str) and data[key]:
+            return data[key]
+    return None
+
+
 async def resolve_video(url: str) -> ResolvedVideo:
     url = validate_douyin_url(url)
     headers = {}
     if settings.douyin_api_key:
-        headers["X-API-Key"] = settings.douyin_api_key
+        headers["token"] = settings.douyin_api_key
 
-    endpoint = f"{settings.douyin_api_base.rstrip('/')}/api/v1/parse"
-    async with httpx.AsyncClient(timeout=settings.request_timeout_seconds, follow_redirects=True) as client:
-        response = await client.post(endpoint, json={"url": url}, headers=headers)
-
-    if response.status_code == 202:
-        body = response.json()
-        task_id = ((body.get("meta") or {}).get("task_id"))
-        if not task_id:
-            raise DouyinError("抖音解析服務正在處理，但沒有回傳 task_id")
-        async with httpx.AsyncClient(timeout=settings.request_timeout_seconds) as client:
-            response = await client.get(
-                f"{settings.douyin_api_base.rstrip('/')}/api/v1/tasks/{task_id}",
-                headers=headers,
-            )
+    base = settings.douyin_api_base.rstrip("/")
+    async with httpx.AsyncClient(
+        timeout=settings.request_timeout_seconds,
+        follow_redirects=True,
+    ) as client:
+        # v4 parser used by the Railway sidecar.
+        response = await client.get(
+            f"{base}/api/hybrid/video_data",
+            params={"url": url, "minimal": "false"},
+            headers=headers,
+        )
 
     if response.is_error:
         raise DouyinError(f"抖音解析失敗：HTTP {response.status_code}")
 
     body = response.json()
-    if not body.get("success", True):
-        err = body.get("error") or {}
-        raise DouyinError(err.get("message") or "抖音解析失敗")
+    if body.get("code") not in (None, 200):
+        raise DouyinError(body.get("message") or body.get("msg") or "抖音解析失敗")
 
     data = body.get("data") or body
-    media = data.get("media") or {}
-    video = media.get("video") or {}
-    video_url = video.get("url")
-    if not video_url:
-        video_obj = data.get("video") or {}
-        for key in ("play_addr_h264", "play_addr", "download_addr"):
-            urls = ((video_obj.get(key) or {}).get("url_list") or [])
-            if urls:
-                video_url = urls[0]
-                break
+    video_url = _pick_video_url(data)
     if not video_url:
         raise DouyinError("解析成功，但找不到影片來源；可能是圖集或抖音風控阻擋")
 

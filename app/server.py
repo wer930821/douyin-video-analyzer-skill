@@ -12,6 +12,7 @@ from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
 from .service import EXPECTED_ERRORS, prepare_douyin_media
+from .webui import home, web_analyze
 
 
 mcp = MCPServer(
@@ -73,7 +74,7 @@ async def analyze_douyin_video(url: str):
 
 
 async def health(_: Request) -> JSONResponse:
-    return JSONResponse({"ok": True, "service": "douyin-video-analyzer", "version": "0.3.1"})
+    return JSONResponse({"ok": True, "service": "douyin-video-analyzer", "version": "0.4.0"})
 
 
 mcp_app = mcp.streamable_http_app(
@@ -91,8 +92,10 @@ async def lifespan(_: Starlette):
 
 app = Starlette(
     routes=[
+        Route("/", home, methods=["GET"]),
         Route("/health", health, methods=["GET"]),
-        Mount("/", app=mcp_app),
+        Route("/api/web-analyze", web_analyze, methods=["POST"]),
+        Mount("/mcp", app=mcp_app),
     ],
     lifespan=lifespan,
 )

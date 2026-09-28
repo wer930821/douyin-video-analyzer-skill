@@ -1,0 +1,19 @@
+[project]
+name = "douyin-video-analyzer-skill"
+version = "0.2.1"
+description = "Analyze mainland China Douyin videos from a share URL"
+requires-python = ">=3.11"
+dependencies = [
+  "httpx>=0.28",
+  "pydantic-settings>=2.7",
+  "openai>=1.70",
+  "python-multipart>=0.0.20",
+  "mcp>=2.0,<3",
+  "uvicorn[standard]>=0.34",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "pytest-asyncio>=0.25"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

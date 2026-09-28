@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .douyin import DouyinError, resolve_video
-from .media import MediaError, download_video, extract_audio, extract_frames
+from .media import MediaError, download_douyin_video, extract_audio, extract_frames
 
 
 @dataclass
@@ -20,13 +20,17 @@ class MediaBundle:
 
 async def prepare_douyin_media(url: str) -> MediaBundle:
     resolved = await resolve_video(url)
+
     with tempfile.TemporaryDirectory(prefix="douyin_analyze_") as td:
         root = Path(td)
         video = root / "video.mp4"
         audio = root / "audio.mp3"
         frames_dir = root / "frames"
 
-        await download_video(resolved.video_url, video)
+        # Important: use the original share URL through the parser's download
+        # endpoint. Fetching the raw douyinvod.com URL from this service can 403.
+        await download_douyin_video(resolved.source_url, video)
+
         await asyncio.gather(
             extract_audio(video, audio),
             extract_frames(video, frames_dir),

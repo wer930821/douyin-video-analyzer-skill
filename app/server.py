@@ -12,7 +12,7 @@ from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
 from .service import EXPECTED_ERRORS, prepare_douyin_media
-from .webui import home, web_analyze
+from .webui import home, web_analyze, web_analyze_status
 
 
 mcp = MCPServer(
@@ -95,6 +95,7 @@ app = Starlette(
         Route("/", home, methods=["GET"]),
         Route("/health", health, methods=["GET"]),
         Route("/api/web-analyze", web_analyze, methods=["POST"]),
+        Route("/api/web-analyze/{job_id}", web_analyze_status, methods=["GET"]),
         Mount("/mcp", app=mcp_app),
     ],
     lifespan=lifespan,

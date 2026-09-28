@@ -5,13 +5,15 @@ class Settings(BaseSettings):
     douyin_api_base: str = "http://127.0.0.1:8001"
     douyin_api_key: str = ""
     max_video_mb: int = 120
-    frame_interval_seconds: int = 4
-    max_frames: int = 8
+    frame_interval_seconds: int = 8
+    max_frames: int = 5
+    max_audio_seconds: int = 45
     request_timeout_seconds: int = 90
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-3.7-flash"
-    gemini_fallback_models: str = "gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.8-flash,gemini-3.5-flash"
+    gemini_model: str = "gemini-3.5-flash-lite"
+    gemini_fallback_models: str = "gemini-3.7-flash,gemini-3.8-flash"
     gemini_max_retries: int = 1
+    gemini_request_timeout_seconds: int = 35
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

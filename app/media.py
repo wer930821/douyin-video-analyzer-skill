@@ -15,18 +15,54 @@ class MediaError(RuntimeError):
     pass
 
 
-async def download_video(video_url: str, output: Path) -> None:
+async def download_douyin_video(source_url: str, output: Path) -> None:
+    """Ask the Douyin parser to download the video with platform-aware headers.
+
+    Direct douyinvod.com URLs often return 403 when fetched by a separate service.
+    The parser's /api/download endpoint reuses Douyin crawler headers/cookies and
+    is specifically designed to avoid that direct-CDN failure.
+    """
     max_bytes = settings.max_video_mb * 1024 * 1024
     total = 0
-    async with httpx.AsyncClient(timeout=settings.request_timeout_seconds, follow_redirects=True) as client:
-        async with client.stream("GET", video_url, headers={"User-Agent": "Mozilla/5.0"}) as r:
-            r.raise_for_status()
+    endpoint = f"{settings.douyin_api_base.rstrip('/')}/api/download"
+
+    async with httpx.AsyncClient(
+        timeout=max(settings.request_timeout_seconds, 180),
+        follow_redirects=True,
+    ) as client:
+        async with client.stream(
+            "GET",
+            endpoint,
+            params={
+                "url": source_url,
+                "prefix": "false",
+                "with_watermark": "false",
+            },
+            headers={"Accept": "video/mp4,application/octet-stream;q=0.9,*/*;q=0.8"},
+        ) as r:
+            if r.status_code >= 400:
+                body = await r.aread()
+                detail = body.decode("utf-8", errors="ignore")[:800]
+                raise MediaError(
+                    f"抖音影片下載失敗：HTTP {r.status_code}"
+                    + (f" - {detail}" if detail else "")
+                )
+
+            content_type = (r.headers.get("content-type") or "").lower()
+            if "json" in content_type:
+                body = await r.aread()
+                detail = body.decode("utf-8", errors="ignore")[:1200]
+                raise MediaError(f"抖音下載服務未回傳影片：{detail}")
+
             with output.open("wb") as f:
                 async for chunk in r.aiter_bytes(1024 * 1024):
                     total += len(chunk)
                     if total > max_bytes:
                         raise MediaError(f"影片超過 {settings.max_video_mb} MB 上限")
                     f.write(chunk)
+
+    if total == 0:
+        raise MediaError("抖音下載服務回傳空影片")
 
 
 def _run_ffmpeg(args: list[str]) -> None:

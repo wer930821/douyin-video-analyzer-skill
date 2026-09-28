@@ -9,8 +9,8 @@ class Settings(BaseSettings):
     max_frames: int = 8
     request_timeout_seconds: int = 90
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-3.5-flash-lite"
-    gemini_fallback_models: str = "gemini-3.8-flash,gemini-3.5-flash"
+    gemini_model: str = "gemini-3.7-flash"
+    gemini_fallback_models: str = "gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.8-flash,gemini-3.5-flash"
     gemini_max_retries: int = 1
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

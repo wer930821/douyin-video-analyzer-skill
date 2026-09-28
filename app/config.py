@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     frame_interval_seconds: int = 4
     max_frames: int = 10
     request_timeout_seconds: int = 90
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.8-flash"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
